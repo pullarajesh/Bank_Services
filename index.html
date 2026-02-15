@@ -1,226 +1,202 @@
-
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Bank Management System</title>
+    <title>Banking Management System</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f4f6f9;
+            background-color: #f2f2f2;
             text-align: center;
-            margin: 0;
-        }
-
-        h1 {
-            background: #2c3e50;
-            color: white;
-            padding: 15px;
         }
 
         .container {
-            width: 80%;
-            margin: 20px auto;
+            width: 700px;
+            margin: auto;
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 10px #ccc;
+            box-shadow: 0 0 10px gray;
+        }
+
+        h2 {
+            color: #333;
         }
 
         input {
             padding: 8px;
             margin: 5px;
-            width: 180px;
+            width: 90%;
         }
 
         button {
-            padding: 8px 12px;
+            padding: 8px 15px;
             margin: 5px;
+            background-color: green;
+            color: white;
             border: none;
             cursor: pointer;
-            border-radius: 4px;
-            background: #3498db;
-            color: white;
         }
 
         button:hover {
-            background: #2980b9;
+            background-color: darkgreen;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
             margin-top: 15px;
+            border-collapse: collapse;
         }
 
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
+        th,
+        td {
+            border: 1px solid gray;
+            padding: 8px;
         }
 
         th {
-            background: #2c3e50;
-            color: white;
+            background-color: #ddd;
         }
 
-        .error {
-            color: red;
-            font-size: 13px;
+        .delete-btn {
+            background-color: red;
+        }
+
+        .delete-btn:hover {
+            background-color: darkred;
+        }
+
+        .action-btn {
+            background-color: blue;
+        }
+
+        .action-btn:hover {
+            background-color: darkblue;
         }
     </style>
 </head>
 
 <body>
 
-<h1>Bank Management System</h1>
+    <div class="container">
+        <h2>Banking Management System</h2>
 
-<div class="container">
-    <h2>Add Bank Account</h2>
+        <!-- Create Account -->
+        <h3>Create Account</h3>
+        <input type="text" id="accNumber" placeholder="Account Number">
+        <input type="text" id="accName" placeholder="Account Holder Name">
+        <input type="number" id="balance" placeholder="Initial Balance">
+        <button onclick="createAccount()">Create Account</button>
 
-    <input type="text" id="accountNumber" placeholder="Account Number">
-    <div class="error" id="errAccountNumber"></div>
+        <!-- Transaction -->
+        <h3>Transaction</h3>
+        <input type="text" id="transAccNumber" placeholder="Account Number">
+        <input type="number" id="amount" placeholder="Amount">
+        <button class="action-btn" onclick="deposit()">Deposit</button>
+        <button class="delete-btn" onclick="withdraw()">Withdraw</button>
 
-    <input type="text" id="firstName" placeholder="First Name">
-    <div class="error" id="errFirstName"></div>
+        <!-- Account Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Account No</th>
+                    <th>Name</th>
+                    <th>Balance</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="accountTable"></tbody>
+        </table>
+    </div>
 
-    <input type="text" id="secondName" placeholder="Second Name">
-    <div class="error" id="errSecondName"></div>
+    <script>
+        let accounts = [];
 
-    <input type="number" id="balance" placeholder="Balance">
-    <div class="error" id="errBalance"></div>
+        function createAccount() {
+            let accNumber = document.getElementById("accNumber").value;
+            let accName = document.getElementById("accName").value;
+            let balance = parseFloat(document.getElementById("balance").value);
 
-    <br>
-    <button onclick="addAccount()">Save</button>
-</div>
+            if (accNumber === "" || accName === "" || isNaN(balance)) {
+                alert("Please fill all fields");
+                return;
+            }
 
-<div class="container">
-    <h2>All Accounts</h2>
-    <button onclick="loadAccounts()">Refresh</button>
+            let account = {
+                accNumber: accNumber,
+                accName: accName,
+                balance: balance
+            };
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Account Number</th>
-                <th>Holder Name</th>
-                <th>Balance</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="accountTable"></tbody>
-    </table>
-</div>
+            accounts.push(account);
+            displayAccounts();
 
-<script>
+            document.getElementById("accNumber").value = "";
+            document.getElementById("accName").value = "";
+            document.getElementById("balance").value = "";
+        }
 
-const baseUrl = "http://localhost:8084";
+        function deposit() {
+            let accNumber = document.getElementById("transAccNumber").value;
+            let amount = parseFloat(document.getElementById("amount").value);
 
-// Load accounts
-function loadAccounts() {
-    fetch(baseUrl + "/getAll?page=0&size=10")
-        .then(res => res.json())
-        .then(data => {
+            let account = accounts.find(acc => acc.accNumber === accNumber);
 
-            const table = document.getElementById("accountTable");
+            if (!account) {
+                alert("Account not found");
+                return;
+            }
+
+            account.balance += amount;
+            displayAccounts();
+        }
+
+        function withdraw() {
+            let accNumber = document.getElementById("transAccNumber").value;
+            let amount = parseFloat(document.getElementById("amount").value);
+
+            let account = accounts.find(acc => acc.accNumber === accNumber);
+
+            if (!account) {
+                alert("Account not found");
+                return;
+            }
+
+            if (account.balance < amount) {
+                alert("Insufficient Balance");
+                return;
+            }
+
+            account.balance -= amount;
+            displayAccounts();
+        }
+
+        function deleteAccount(index) {
+            accounts.splice(index, 1);
+            displayAccounts();
+        }
+
+        function displayAccounts() {
+            let table = document.getElementById("accountTable");
             table.innerHTML = "";
 
-            data.content.forEach(account => {
-
-                const fullName = account.accountHolderFirstName + " " + account.accountHolderSecondName;
-
+            accounts.forEach((acc, index) => {
                 table.innerHTML += `
-                    <tr>
-                        <td>${account.id ?? ""}</td>
-                        <td>${account.accountNumber}</td>
-                        <td>${fullName}</td>
-                        <td>${account.balance}</td>
-                        <td>
-                            <button onclick="deleteAccount(${account.id})">Delete</button>
-                        </td>
-                    </tr>
-                `;
+                <tr>
+                    <td>${acc.accNumber}</td>
+                    <td>${acc.accName}</td>
+                    <td>${acc.balance}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteAccount(${index})">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
             });
-        });
-}
-
-// Add account
-function addAccount() {
-
-    clearErrors();
-
-    const account = {
-        accountNumber: document.getElementById("accountNumber").value,
-        accountHolderFirstName: document.getElementById("firstName").value,
-        accountHolderSecondName: document.getElementById("secondName").value,
-        balance: parseFloat(document.getElementById("balance").value)
-    };
-
-    fetch(baseUrl + "/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(account)
-    })
-    .then(res => {
-        if (!res.ok) {
-            return res.json().then(err => { throw err; });
         }
-        return res.json();
-    })
-    .then(() => {
-        alert("Account Saved Successfully!");
-        loadAccounts();
-        clearForm();
-    })
-    .catch(errors => {
-        showErrors(errors);
-    });
-}
-
-// Delete account
-function deleteAccount(id) {
-    fetch(baseUrl + "/delete/" + id, { method: "DELETE" })
-        .then(res => {
-            if (!res.ok) {
-                return res.json().then(err => { throw err; });
-            }
-            return res.json();
-        })
-        .then(() => {
-            alert("Deleted Successfully!");
-            loadAccounts();
-        })
-        .catch(err => alert(err.error));
-}
-
-
-// Show validation errors
-function showErrors(errors) {
-    if (errors.accountNumber)
-        document.getElementById("errAccountNumber").innerText = errors.accountNumber;
-
-    if (errors.accountHolderFirstName)
-        document.getElementById("errFirstName").innerText = errors.accountHolderFirstName;
-
-    if (errors.accountHolderSecondName)
-        document.getElementById("errSecondName").innerText = errors.accountHolderSecondName;
-
-    if (errors.balance)
-        document.getElementById("errBalance").innerText = errors.balance;
-}
-
-function clearErrors() {
-    document.querySelectorAll(".error").forEach(e => e.innerText = "");
-}
-
-function clearForm() {
-    document.getElementById("accountNumber").value = "";
-    document.getElementById("firstName").value = "";
-    document.getElementById("secondName").value = "";
-    document.getElementById("balance").value = "";
-}
-
-window.onload = loadAccounts;
-
-</script>
+    </script>
 
 </body>
+
 </html>
